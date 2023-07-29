@@ -1,0 +1,50 @@
+{% extends "base_generic.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+<style>
+    #mapid {
+        height: 600px;
+        width: 1000px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Choose Location for new Stolperstein</h1>
+<div id="mapid"></div>
+<script>
+    var map = L.map('mapid').setView([51.165691, 10.451526], 6);
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1Ijoibmljb2xlbnMiLCJhIjoiY2twanRsdWw5MDE2ODJxcGh4MDVnMzZ1ZiJ9.jBWE3QQoUXz_6OhvShrkdQ'
+    }).addTo(map);
+    var locations = '{{locations|escapejs}}';
+    locations = locations.replaceAll("'", '"');
+    locations = JSON.parse(locations);
+
+    var markers = [];
+    for (i = 0; i < locations.length; i++) {
+        loc = locations[i];
+        lon = loc.split(",").shift();
+        lat = loc.split(",").pop();
+        locArray = new Array(lon, lat);
+
+        // If click on a marker, get to the new_stolperstein page for that location
+        function onClick(e) {
+            window.location.href = '{{link}}' + loc;
+        }
+        L.marker(locArray).addTo(map).on('click', onClick);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,1 @@
+web: gunicorn stolpersteine.wsgi --log-file -

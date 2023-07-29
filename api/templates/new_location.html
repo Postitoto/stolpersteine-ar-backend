@@ -1,0 +1,64 @@
+{% extends "base_generic.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin="" />
+{% endblock %}
+
+{% block content %}
+
+<h1>Choose new Location</h1>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<style>
+  #mapid {
+    height: 600px;
+    width: 1000px;
+  }
+</style>
+<div id="mapid"></div>
+<p> Set the marker on the new Stolperstein Location and hit confirm</p>
+
+
+<form id="coordinate_form" action="" method="post" enctype="multipart/form-data">
+
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <input type="submit" name="submit" value="Confirm" id="submit_button" style="display:none">
+</form>
+
+<script>
+  // Hide coordinates form input
+
+  // Create map
+  var map = L.map('mapid').setView([51.165691, 10.451526], 6).on('click', onMapClick);
+  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox/streets-v11',
+    tileSize: 512,
+    zoomOffset: -1,
+    accessToken: 'pk.eyJ1Ijoibmljb2xlbnMiLCJhIjoiY2twanRsdWw5MDE2ODJxcGh4MDVnMzZ1ZiJ9.jBWE3QQoUXz_6OhvShrkdQ'
+  }).addTo(map);
+
+  marker = null
+
+  // Set the marker at that position and store coordinates
+  function onMapClick(e) {
+    if (marker == null) {
+      marker = L.marker(e.latlng).addTo(map);
+    }
+    else {
+      marker.setLatLng(e.latlng);
+    }
+    var coordsString = e.latlng.lat + "," + e.latlng.lng
+    document.forms[0].id_coordinates.value = coordsString;
+    document.getElementById("submit_button").style.display = "block";
+  }
+</script>
+
+{% endblock %}

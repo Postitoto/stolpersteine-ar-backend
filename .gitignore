@@ -1,0 +1,8 @@
+# Virtual Environment Folder #
+.venv/
+# Visual Studio Code
+.vscode/
+# Other
+key.txt
+/media
+set_exports.sh

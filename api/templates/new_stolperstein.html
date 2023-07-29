@@ -1,0 +1,164 @@
+{% extends "base_generic.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+<h1>New Stolperstein</h1>
+
+<form id="form-container" action="" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="main-form">
+    <table>
+      {{ main_form.as_table }}
+    </table>
+  </div>
+
+  <div id="lifeStation-management">
+    {{life_stations_formset.management_form}}
+  </div>
+
+  <div id="relatedStolpersteine-management">
+    {{related_stolpersteine_formset.management_form}}
+  </div>
+
+  {% for ls_form in life_stations_formset %}
+  <div class="lifeStation-form">
+    <table>
+      {{ ls_form.as_table }}
+    </table>
+  </div>
+  {% endfor %}
+
+  {% for rel_form in related_stolpersteine_formset %}
+  <div class="relatedStolpersteine-form">
+    <table>
+      {{ rel_form.as_table }}
+    </table>
+  </div>
+  {% endfor %}
+
+  <button id="add-lifeStation" type="button" class="btn btn-scondary">Add Live Station</button>
+  </br>
+  <button id="add-relatedStolperstein" type="button" class="btn btn-scondary">Add Related Stolperstein</button>
+  </br>
+  <input type="submit" class="btn btn-primary" value="Submit">
+</form>
+
+
+<script>
+  // creation of dynamic django formsets, based on 
+  // https://www.brennantymrak.com/articles/django-dynamic-formsets-javascript.html
+  let container = document.querySelector("#form-container");
+
+  // Life station form:
+  let lsForm = document.querySelectorAll(".lifeStation-form");
+  let addLsButton = document.querySelector("#add-lifeStation");
+  let totalLsForms = document.querySelector("#id_ls_form-TOTAL_FORMS");
+  // Remove the first form (need to start with one form to be able to copy it)
+  let lsFormNum = lsForm.length - 1;
+  let lsFormBlueprint = lsForm[0].cloneNode(true);
+  lsForm[0].remove();
+  lsFormNum--;
+  totalLsForms.setAttribute('value', `0`);
+  addLsButton.addEventListener('click', addLsForm);
+
+  // Related Stolpersteine form:
+  let relForm = document.querySelectorAll(".relatedStolpersteine-form");
+  let addRelButton = document.querySelector("#add-relatedStolperstein");
+  let totalRelForms = document.querySelector("#id_rel_form-TOTAL_FORMS");
+  // Remove the first form (need to start with one form to be able to copy it)
+  let relFormNum = relForm.length - 1;
+  let relFormBlueprint = relForm[0].cloneNode(true);
+  relForm[0].remove();
+  relFormNum--;
+  totalRelForms.setAttribute('value', `0`);
+  addRelButton.addEventListener('click', addRelForm);
+
+  function addRelForm(e) {
+    e.preventDefault();
+
+    let newForm = relFormBlueprint.cloneNode(true);
+    let formRegex = RegExp(`form-(\\d){1}-`, 'g');
+
+    relFormNum++;
+    newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${relFormNum}-`);
+    container.insertBefore(newForm, addRelButton);
+
+    totalRelForms.setAttribute('value', `${relFormNum + 1}`);
+  }
+
+  function addLsForm(e) {
+    e.preventDefault();
+
+    let newForm = lsFormBlueprint.cloneNode(true);
+    let formRegex = RegExp(`form-(\\d){1}-`, 'g');
+
+    lsFormNum++;
+    newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${lsFormNum}-`);
+    container.insertBefore(newForm, addLsButton);
+    mapDiv = createMapDiv(lsFormNum);
+    container.insertBefore(mapDiv, newForm);
+    newMap(lsFormNum);
+
+    totalLsForms.setAttribute('value', `${lsFormNum + 1}`);
+  }
+
+  // Generate map id
+  function mapid(nr) {
+    return "mapid-" + nr;
+  }
+
+  // Add another LifeStation Form
+
+
+  // Create a div with all elements that are needed for a map
+  function createMapDiv(nr) {
+    div = document.createElement('div');
+    // Style
+    style = document.createElement('style');
+    style.innerHTML = "#" + mapid(nr) + "{height: 300px;width: 500px;}";
+    div.appendChild(style);
+    // Map
+    mapDiv = document.createElement('div');
+    mapDiv.setAttribute("id", mapid(nr)); // Doesnt find the div yet
+    div.appendChild(mapDiv);
+
+    return div;
+  }
+
+  // Create new map with the functionality
+  function newMap(nr) {
+
+    // When clicking on the map, a marker placed/moved and the coordinates are stored
+    var marker = null;
+    function onMapClick(e) {
+      if (marker == null) {
+        marker = L.marker(e.latlng).addTo(map);
+      } else {
+        marker.setLatLng(e.latlng);
+      }
+      var coordsString = e.latlng.lat + "," + e.latlng.lng
+      coords = document.getElementById("id_ls_form-" + nr + "-coordinates");
+      coords.value = coordsString;
+    }
+    // Add the map
+    var map = L.map(mapid(nr)).setView([51.165691, 10.451526], 6).on('click', onMapClick);
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      maxZoom: 18,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1Ijoibmljb2xlbnMiLCJhIjoiY2twanRsdWw5MDE2ODJxcGh4MDVnMzZ1ZiJ9.jBWE3QQoUXz_6OhvShrkdQ'
+    }).addTo(map);
+  }
+</script>
+{% endblock %}

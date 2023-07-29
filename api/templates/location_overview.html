@@ -1,0 +1,103 @@
+{% extends "base_generic.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/sort-list.css' %}" />
+<script src="{% static 'js/sort-list.js' %}"></script>
+<script src="{% static 'js/request.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+{% if location.name %}
+<h1>Stolpersteine {{ location.name }}</h1>
+{% else %}
+<h1>Stolpersteine Overview</h1>
+{% endif %}
+
+<!-- The sortable list -->
+<ul id="sortlist">
+    {% for stolperstein in stolpersteine %}
+    <li stolperstein_id="{{ stolperstein.id }}" onclick="listItemSelected(this)">{{ stolperstein.name }}</li>
+    {% endfor %}
+</ul>
+<button id="edit_button"  class="btn btn-default" onclick="editStolperstein()" style="display: none;">Edit Selected</button>
+<button id="delete_button" class="btn btn-danger" onclick="deleteStolperstein()" style="display: none;">Delete Selected</button>
+<p>Use Drag & Drop to arrange the list of the Stolpersteine. The list order should correspond to the layout in the world
+    from left to
+    right and top to bottom. \<br>
+    Use Button below to add a new Stolperstein.
+</p>
+
+<a href='{{ new_stolperstein_url }}/{{ coords }}'>
+    <button class="btn btn-primary" >Add Stolperstein</button>
+</a>
+
+<!-- Init List on Pageload -->
+<script>
+    window.addEventListener("DOMContentLoaded", function () {
+        slist("sortlist", saveListOrder);
+    });
+
+    // Send updated stolperstein order back to backend
+    function saveListOrder() {
+        list_items = document.querySelectorAll('[stolperstein_id]')
+        id_list = []
+        for (let i = 0; i < list_items.length; i++) {
+            id_list[i] = list_items[i].getAttribute("stolperstein_id");
+        }
+        // Send post request with new list order
+        params = {
+            order: id_list,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        };
+        post("{{ update_order_url }}/{{ coords }}", params);
+    }
+
+    selectedStolpersteinId = null;
+    // Allow selection of one element of the list
+    function listItemSelected(selectedItem) {
+        selectedStolpersteinId = selectedItem.getAttribute("stolperstein_id");
+        list_items = document.querySelectorAll('[stolperstein_id]')
+        for (item of list_items) {
+            item.classList.remove("active");
+        }
+        selectedItem.classList.add("active");
+
+        // Turn edit/delete button on, if turned off
+        document.getElementById("edit_button").style.display = "block";
+        document.getElementById("delete_button").style.display = "block";
+    }
+
+    function editStolperstein() {
+        if (selectedStolpersteinId == null) {
+            throw "no stolperstein selected";
+        }
+        else {
+            alert("edit method not yet implemented");
+        }
+    }
+
+    function deleteStolperstein() {
+        if (selectedStolpersteinId == null) {
+            throw "no stolperstein selected";
+        }
+        else {
+            params = {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            };
+        }
+        post('{{ delete_stolperstein_url }}/' + selectedStolpersteinId + '/{{ coords }}', params)
+            .then(function () {
+                selectedStolpersteinId == null;
+                location.reload();
+            })
+    }
+
+
+</script>
+
+{% endblock %}
