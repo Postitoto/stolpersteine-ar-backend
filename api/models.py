@@ -17,6 +17,7 @@ class LocationReference(models.Model):
     name = models.CharField(max_length=100, null=True,
                             blank=True, default=None)
     responsible_users = models.ManyToManyField(User)
+    test = models.CharField(max_length=100, null=True, blank=True)
 
 
 class Stolperstein(models.Model):
