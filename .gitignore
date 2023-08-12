@@ -2,8 +2,6 @@
 .venv/
 # Visual Studio Code
 .vscode/
-# pychache files for database migrations
-api/migrations/__pycache__
 # Other
 key.txt
 /media
