@@ -51,17 +51,23 @@ class CustomFiles(models.Model):
     stolperstein = models.OneToOneField(
         Stolperstein, related_name="files", on_delete=models.CASCADE)
     photoName = models.CharField(
-        null=True, blank=True, default=None, max_length=100)
+        null=True, blank=True, default=None, max_length=100, db_column="photo_name")
     photo = models.ImageField(
         upload_to='photos/%Y/%m/%d/', null=True, blank=False)
     audioName = models.CharField(
-        null=True, blank=True, default=None, max_length=100)
+        null=True, blank=True, default=None, max_length=100, db_column="audio_name")
     # REMOVE THE 'storage' PARAMETER IF YOU WANT TO SAVE THE FILE ON YOUR LOCAL HARDDRIVE
     # DONT FORGET TO RUN: python3 manage.py makemigrations AND python3 manage.py migrate EACH TIME YOU CHANGE THIS
     # ALSO SEE THE NOTE ON settings.py
     audio = models.FileField(upload_to='audios/%Y/%m/%d/', null=True,
                              blank=False, storage=VideoMediaCloudinaryStorage()
                             )
+    videoName = models.CharField(
+        null=True, blank=True, default=None, max_length=100, db_column="video_name")
+    video = models.FileField(upload_to='videos/%Y/%m/%d/', null=True,
+                             blank=False, storage=VideoMediaCloudinaryStorage()
+                             )
+
 
 
 class LifeStation(models.Model):
