@@ -94,10 +94,8 @@ def stolpersteine_at(request, coords, format=None, **kwargs):
     Returns all stolperstein entries at given coordinates as JSON
     '''
     location = Location.objects.get(coordinates=coords)
-    stolpersteine = Stolperstein.objects.filter(
-        location=location).order_by('order__position')
-    serializer = StolpersteinModelSerializer(
-        stolpersteine, many=True, context={'request': request})
+    stolpersteine = Stolperstein.objects.filter(location=location).order_by('order__position')
+    serializer = StolpersteinModelSerializer(stolpersteine, many=True, context={'request': request})
     return Response(
         serializer.data
     )
@@ -146,17 +144,22 @@ def api_add_stolperstein_assets(request, stolpersteinId):
     file_serializer = CustomFileModelSerializer(data=request.data)
     if file_serializer.is_valid():
         try:
+            # This saves the files to the storage selected in the CustomFiles model
+            file_serializer.save()
+            photo_path = file_serializer.data.get("photo")
+            audio_path = file_serializer.data.get("audio")
+            video_path = file_serializer.data.get("video")
             stolperstein = Stolperstein.objects.get(id=stolpersteinId)
             existingFiles = CustomFiles.objects.get(stolperstein=stolpersteinId)
             if file_serializer.data.get("photoName") != None:
                 existingFiles.photoName = file_serializer.data.get("photoName")
-                existingFiles.photo = file_serializer.data.get("photo")
+                existingFiles.photo = photo_path
             if file_serializer.data.get("audioName") != None:
                 existingFiles.audioName = file_serializer.data.get("audioName")
-                existingFiles.audio = file_serializer.data.get("audio")
+                existingFiles.audio = audio_path
             if file_serializer.data.get("videoName") != None:
                 existingFiles.videoName = file_serializer.data.get("videoName")
-                existingFiles.video = file_serializer.data.get("video")
+                existingFiles.video = video_path
             existingFiles.save()
         except Stolperstein.DoesNotExist:
             return Response("Stolperstein does not exist. Please make sure that the" 
@@ -165,12 +168,14 @@ def api_add_stolperstein_assets(request, stolpersteinId):
             CustomFiles.objects.create(
                 stolperstein=stolperstein,
                 photoName = file_serializer.data.get("photoName"),
-                photo = file_serializer.data.get("photo"),
                 audioName = file_serializer.data.get("audioName"),
-                audio = file_serializer.data.get("audio"),
                 videoName = file_serializer.data.get("videoName"),
-                video = file_serializer.data.get("video"),
-                )       
+                photo = photo_path,
+                audio = audio_path,
+                video = video_path,
+                )
+        except Exception as e:
+            return Response("Failed to upload files", status=400)      
         return Response("Successfully uploaded assets", status=status.HTTP_200_OK)
     else:
         return Response(file_serializer.errors, status=400)
