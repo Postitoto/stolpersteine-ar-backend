@@ -207,9 +207,13 @@ CORS_ORIGIN_WHITELIST = (
 
 
 CLOUDINARY_STORAGE = {
-'CLOUD_NAME': os.environ.get('CLOUD_NAME_CLOUDINARY'),
-'API_KEY': os.environ.get('API_KEY_CLOUDINARY'),
-'API_SECRET': os.environ.get('API_SECRET_CLOUDINARY'),
+#'CLOUD_NAME': os.environ.get('CLOUD_NAME_CLOUDINARY'),
+#'API_KEY': os.environ.get('API_KEY_CLOUDINARY'),
+#'API_SECRET': os.environ.get('API_SECRET_CLOUDINARY'),
+
+'CLOUD_NAME': "dythpl8mo",
+'API_KEY': "894418657983363",
+'API_SECRET': "NkAb2SSjc5bqNQAT3KRFV0M-UJY",
 }
 
 # Setting up cloudinary cloud storage
