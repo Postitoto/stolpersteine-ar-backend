@@ -20,6 +20,9 @@ class CustomFileModelSerializer(serializers.ModelSerializer):
         return data
     
     def correct_url(self, url):
+        if(url == None):
+            return url
+
         public_index = url.find("/public/")
         if public_index != -1:
             url = url[public_index + len("/public/"):]
