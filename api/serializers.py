@@ -1,5 +1,6 @@
 from urllib import request
 from rest_framework import serializers
+from urllib.parse import urlparse
 
 from .models import CustomFiles, LifeStation, Location, LocationReference, Stolperstein, StolpersteinRelation, Textbox
 
@@ -8,6 +9,22 @@ class CustomFileModelSerializer(serializers.ModelSerializer):
         model = CustomFiles
         fields = '__all__'
 
+    # This is required to fix a problem where URLs were returned incorrectly (I don't know how this ever worked without this fix tbh)
+    # Turns this -> https://res.cloudinary.com/dythpl8mo/video/upload/v1/public/https://res.cloudinary.com/dythpl8mo/video/upload/v1/public/videos/20231016/720p1Min_o3qmlm
+    # into this -> https://res.cloudinary.com/dythpl8mo/video/upload/v1/public/videos/20231016/720p1Min_o3qmlm
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['photo'] = self.correct_url(data['photo'])
+        data['audio'] = self.correct_url(data['audio'])
+        data['video'] = self.correct_url(data['video'])
+        return data
+    
+    def correct_url(self, url):
+        public_index = url.find("/public/")
+        if public_index != -1:
+            url = url[public_index + len("/public/"):]
+        return url
+  
 class LocationModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
