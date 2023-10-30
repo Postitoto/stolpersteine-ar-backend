@@ -22,10 +22,17 @@ class CustomFileModelSerializer(serializers.ModelSerializer):
     def correct_url(self, url):
         if(url == None):
             return url
-
+    
         public_index = url.find("/public/")
         if public_index != -1:
-            url = url[public_index + len("/public/"):]
+            edited_url = url[public_index + len("/public/"):]
+
+        # Since this funny problem only happens when retrieving the url but this code is also used when saving the url
+        # we need to check if the edited url is actually valid. This is so messed up
+        # Obviously the best solution would be to find out why the url is so fucked when retrieving it but I can't be bothered right now
+        if "https://" in edited_url:
+            return edited_url
+        
         return url
   
 class LocationModelSerializer(serializers.ModelSerializer):

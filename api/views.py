@@ -141,44 +141,26 @@ def api_add_location(request):
 @login_required
 @permission_required("api.add_custom_files", raise_exception=True)
 def api_add_stolperstein_assets(request, stolpersteinId):
-    file_serializer = CustomFileModelSerializer(data=request.data)
-    if file_serializer.is_valid():
-        try:
-            # This saves the files to the storage selected in the CustomFiles model
+    try:
+        stolperstein = Stolperstein.objects.get(id=stolpersteinId)
+        existingFiles = CustomFiles.objects.get(stolperstein=stolpersteinId)
+    except Stolperstein.DoesNotExist:
+            return Response("Stolperstein does not exist. Please make sure that the Stolperstein exists before uploading assets for it.", 
+                            status=status.HTTP_400_BAD_REQUEST)
+    except CustomFiles.DoesNotExist:
+        existingFiles = None
+    
+    file_serializer = CustomFileModelSerializer(existingFiles, data=request.data)
+
+    try:
+        if file_serializer.is_valid():
             file_serializer.save()
-            photo_path = file_serializer.data.get("photo")
-            audio_path = file_serializer.data.get("audio")
-            video_path = file_serializer.data.get("video")
-            stolperstein = Stolperstein.objects.get(id=stolpersteinId)
-            existingFiles = CustomFiles.objects.get(stolperstein=stolpersteinId)
-            if file_serializer.data.get("photoName") != None:
-                existingFiles.photoName = file_serializer.data.get("photoName")
-                existingFiles.photo = photo_path
-            if file_serializer.data.get("audioName") != None:
-                existingFiles.audioName = file_serializer.data.get("audioName")
-                existingFiles.audio = audio_path
-            if file_serializer.data.get("videoName") != None:
-                existingFiles.videoName = file_serializer.data.get("videoName")
-                existingFiles.video = video_path
-            existingFiles.save()
-        except Stolperstein.DoesNotExist:
-            return Response("Stolperstein does not exist. Please make sure that the" 
-                " Stolperstein exists before uploading assets for it.", status=status.HTTP_400_BAD_REQUEST)
-        except CustomFiles.DoesNotExist:
-            CustomFiles.objects.create(
-                stolperstein=stolperstein,
-                photoName = file_serializer.data.get("photoName"),
-                audioName = file_serializer.data.get("audioName"),
-                videoName = file_serializer.data.get("videoName"),
-                photo = photo_path,
-                audio = audio_path,
-                video = video_path,
-                )
-        except Exception as e:
-            return Response("Failed to upload files", status=400)      
-        return Response("Successfully uploaded assets", status=status.HTTP_200_OK)
-    else:
-        return Response(file_serializer.errors, status=400)
+            return Response("Successfully uploaded assets", status=status.HTTP_200_OK)
+        else:
+            return Response(file_serializer.errors, status=400)
+    except Exception as e:
+        return Response(f"An unexpected error occured while saving the files to Cloudinary. Please try again \n{e}",
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @login_required
