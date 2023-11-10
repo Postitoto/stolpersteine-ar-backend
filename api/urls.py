@@ -52,6 +52,10 @@ urlpatterns = [
       name="update stolperstein order"),
    path('api/textbox/delete/<str:coords>/<int:id>', views.api_delete_textbox,
       name="delete textbox"),
+   path('api/add-tour/', views.api_create_tour, name="create a new tour"),
+   path('api/add-tour-location/<int:tour_id>', views.api_add_tour_locations, name="add locations to selected tour"),
+   path('api/get-tour/<int:tour_id>', views.api_get_tour, name="get a tour"),
+
    # Legacy Adding Data
    path('', views.index, 
       name="main page"),

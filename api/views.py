@@ -12,8 +12,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from .serializers import (
-    CustomFileModelSerializer, LocationModelSerializer, StolpersteinModelSerializer, StolpersteinRelationSerializer, StolpersteinSerializer, LocationSerializer, LifeStationSerializer, FullStolpersteinRelationSerializer)
-from .models import CustomFiles, LifeStation, Stolperstein, Location, Order, StolpersteinRelation, Textbox
+    CustomFileModelSerializer, LocationModelSerializer, StolpersteinModelSerializer, StolpersteinRelationSerializer, StolpersteinSerializer, TourSerializer, TourLocationSerializer, LocationSerializer, LifeStationSerializer, FullStolpersteinRelationSerializer)
+from .models import CustomFiles, LifeStation, Stolperstein, Location, Order, StolpersteinRelation, Textbox, Tour
 from .forms import AddStolperstein, AddLocation, LifeStationFormSet, StolpersteinRelationFormSet
 import re
 import json
@@ -183,6 +183,7 @@ def api_add_stolperstein(request, coords, format=None, **kwargs):
             stolperstein.name=stolperstein_serializer.data.get("name")                 
             stolperstein.reason_for_persecution=stolperstein_serializer.data.get("reason_for_persecution")
             # Updating Location not supported at the moment!!! TODO
+            stolperstein.placementdate=stolperstein_serializer.data.get("placementdate")
             stolperstein.birthdate=stolperstein_serializer.data.get("birthdate")
             stolperstein.deathdate=stolperstein_serializer.data.get("deathdate")
             stolperstein.birthplace=stolperstein_serializer.data.get("birthplace")
@@ -195,6 +196,7 @@ def api_add_stolperstein(request, coords, format=None, **kwargs):
                     name=stolperstein_serializer.data.get("name"),
                     reason_for_persecution=stolperstein_serializer.data.get("reason_for_persecution"),
                     location=location,
+                    placementdate=stolperstein_serializer.data.get("placementdate"),
                     birthdate=stolperstein_serializer.data.get("birthdate"),
                     deathdate=stolperstein_serializer.data.get("deathdate"),
                     birthplace=stolperstein_serializer.data.get("birthplace"),
@@ -395,6 +397,40 @@ def api_update_order(request, coords):
     except Exception as e:
         return Response(data=e, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+@login_required
+def api_create_tour(request):
+    serializer = TourSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@login_required
+def api_add_tour_locations(request, tour_id):
+    try:
+        tour = Tour.objects.get(id=tour_id)
+    except Tour.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    data = request.data.get('locations', [])
+    serializer = TourLocationSerializer(data=data, many=True, context={'tour': tour})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def api_get_tour(request, tour_id):
+    try:
+        tour = Tour.objects.get(id=tour_id)
+        serializer = TourSerializer(tour)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 # Adding Data Legacy for compatibility
 
 def index(request):
@@ -450,6 +486,7 @@ def new_stolperstein(request, coords):
                 photo=form.cleaned_data["photos"],
                 reason_for_persecution=form.cleaned_data["reason_for_persecution"],
                 location=location,
+                placementdate=form.cleaned_data["placementdate"],
                 birthdate=form.cleaned_data["birthdate"],
                 deathdate=form.cleaned_data["deathdate"],
                 birthplace=form.cleaned_data["birthplace"],
@@ -609,6 +646,10 @@ def delete_stolperstein(request, id, coords=None):
     if request.method == "POST":
         obj.delete()
     return HttpResponse(200)
+
+
+
+
 
 
 # Success / Error Pages:

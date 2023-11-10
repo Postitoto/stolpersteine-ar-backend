@@ -117,14 +117,23 @@ DATABASES = {
     'default': {
         #'ENGINE': 'django.db.backends.sqlite3',
         #'NAME': BASE_DIR / 'db.sqlite3',
+
+        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #'NAME': 'stolpersteine_ar_database',
+        #'USER': 'stolpersteine_ar_database_user',
+        #'PASSWORD': 'XKbt05masQL5GQcsOqlrty41GGFmvyTi',
+        #'HOST': 'dpg-cjaeh0ee546c738s87eg-a.frankfurt-postgres.render.com',
+        #'PORT': '5432',
+
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'stolpersteine_ar_database',
-        'USER': 'stolpersteine_ar_database_user',
-        'PASSWORD': 'XKbt05masQL5GQcsOqlrty41GGFmvyTi',
-        'HOST': 'dpg-cjaeh0ee546c738s87eg-a.frankfurt-postgres.render.com',
+        'NAME': 'stolpersteine',
+        'USER': 'thotor',
+        'PASSWORD': 'l77ZEvf5ZiWx2IBr30RaX6o2c1hczvdi',
+        'HOST': 'dpg-cl4fjth828mc73cskfj0-a.frankfurt-postgres.render.com',
         'PORT': '5432',
     }
 }
+
 
 # For Heroku Deployment: update database configuration from DATABASE_URL
 # Note: On Production environment set above mentioned environment variable!!!

@@ -2,7 +2,7 @@ from urllib import request
 from rest_framework import serializers
 from urllib.parse import urlparse
 
-from .models import CustomFiles, LifeStation, Location, LocationReference, Stolperstein, StolpersteinRelation, Textbox
+from .models import CustomFiles, LifeStation, Location, LocationReference, Stolperstein, StolpersteinRelation, Textbox, Tour, TourLocation
 
 class CustomFileModelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -87,6 +87,7 @@ class StolpersteinModelSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required = True, max_length=100)
     location = LocationModelSerializer()
     files = CustomFileModelSerializer(required=False, many=False)
+    placementdate = serializers.DateField(required=False, allow_null=True, default=None)
     birthdate = serializers.DateField(required=False, allow_null=True, default=None)
     deathdate = serializers.DateField(required=False, allow_null=True, default=None)
     birthplace = serializers.CharField(required=False, max_length=100, allow_blank=True)
@@ -101,8 +102,20 @@ class StolpersteinModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stolperstein
         fields = ['id', 'name', 'reason_for_persecution', 'location',
-            'files', 'birthdate', 'deathdate', 'birthplace', 'deathplace', 
+            'files', 'placementdate', 'birthdate', 'deathdate', 'birthplace', 'deathplace', 
             'birthdate', 'info_text', 'family_text', 'life_stations', 'stolperstein_relations', 'info_textboxes']
+
+
+class TourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tour
+        fields = '__all__'
+
+class TourLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourLocation
+        fields = '__all__'
+
 
 # Hyperlink Model Serializers
 

@@ -30,6 +30,7 @@ class Stolperstein(models.Model):
     name = models.CharField(max_length=100)
     location = models.ForeignKey(
         Location, related_name="stolpersteine", on_delete=models.CASCADE)
+    placementdate = models.DateField(null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
     deathdate = models.DateField(null=True, blank=True)
     birthplace = models.CharField(max_length=100, null=True, blank=True)
@@ -105,3 +106,18 @@ class Textbox(models.Model):
                                      related_name="info_textboxes", on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
+
+
+class Tour(models.Model):
+    name = models.CharField(max_length=255, default='New Tour')
+    locations = models.ManyToManyField('Location', through='TourLocation')
+
+class TourLocation(models.Model):
+    tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
+    location = models.ForeignKey('Location', on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ['tour', 'location']
+
+   
