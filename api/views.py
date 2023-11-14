@@ -1,4 +1,5 @@
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, permission_required
@@ -13,7 +14,7 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from .serializers import (
     CustomFileModelSerializer, LocationModelSerializer, StolpersteinModelSerializer, StolpersteinRelationSerializer, StolpersteinSerializer, TourSerializer, TourLocationSerializer, LocationSerializer, LifeStationSerializer, FullStolpersteinRelationSerializer)
-from .models import CustomFiles, LifeStation, Stolperstein, Location, Order, StolpersteinRelation, Textbox, Tour
+from .models import CustomFiles, LifeStation, Stolperstein, Location, Order, StolpersteinRelation, Textbox, Tour, TourLocation
 from .forms import AddStolperstein, AddLocation, LifeStationFormSet, StolpersteinRelationFormSet
 import re
 import json
@@ -397,7 +398,7 @@ def api_update_order(request, coords):
     except Exception as e:
         return Response(data=e, status=status.HTTP_400_BAD_REQUEST)
 
-
+# Tour related views
 @api_view(['POST'])
 @login_required
 def api_create_tour(request):
@@ -409,20 +410,48 @@ def api_create_tour(request):
 
 @api_view(['POST'])
 @login_required
-def api_add_tour_locations(request, tour_id):
+def api_edit_tour_locations(request, tour_id):
     try:
         tour = Tour.objects.get(id=tour_id)
     except Tour.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
-    data = request.data.get('locations', [])
-    serializer = TourLocationSerializer(data=data, many=True, context={'tour': tour})
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    edited_tour_locations = []
+    for tour_location in request.data:
+        tour_location_data = {
+            'tour': tour_location['tour_id'],
+            'location': tour_location['location_id'],
+            'order': tour_location['order'],
+            'is_active': tour_location['is_active'],
+        }
+
+        tour_location_id = tour_location.get('id', None)
+
+        try:
+            tour_location_instance = TourLocation.objects.get(id=tour_location_id)
+        except TourLocation.DoesNotExist:
+            tour_location_instance = None
+
+        serializer = TourLocationSerializer(data=tour_location_data, instance=tour_location_instance, partial=True)
+
+        if(serializer.is_valid()):
+            serializer.save()
+            edited_tour_locations.append(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@login_required
+def api_all_tours(request):
+    tours = Tour.objects.all()
+    serializer = TourSerializer(tours, many=True, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@login_required
 def api_get_tour(request, tour_id):
     try:
         tour = Tour.objects.get(id=tour_id)
@@ -430,6 +459,53 @@ def api_get_tour(request, tour_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+@login_required
+def api_tour_locations(request, tour_id):
+    try:
+        tour = Tour.objects.get(id=tour_id)
+    except Tour.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    tour_location_data = TourLocation.objects.filter(tour_id=tour_id)
+
+    serializer = TourLocationSerializer(tour_location_data, many=True, context={'request': request})
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@login_required
+def api_get_locations_in_tour(request, tour_id):
+    try:
+        tour = Tour.objects.get(id=tour_id)
+    except Tour.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    tour_location_data = TourLocation.objects.filter(tour_id=tour_id, is_active=True).order_by('order')
+
+    location_ids = [tour_location.location_id for tour_location in tour_location_data]
+
+    locations = Location.objects.filter(id__in=location_ids)
+
+    sorted_locations = sorted(locations, key=lambda x: location_ids.index(x.id))
+
+    serializer = LocationModelSerializer(sorted_locations, many=True, context={'request': request})
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+@login_required
+def api_delete_tour(request, tour_id):
+    try:
+        tour = Tour.objects.get(id=tour_id)
+    except Tour.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    tour.delete()
+
+    return Response(data="Successfully deleted tour with ID="+ str(tour_id), status=status.HTTP_200_OK)
 
 # Adding Data Legacy for compatibility
 

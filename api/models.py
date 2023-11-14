@@ -107,17 +107,19 @@ class Textbox(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
 
-
 class Tour(models.Model):
     name = models.CharField(max_length=255, default='New Tour')
+    description = models.TextField(null=True, blank=True)
     locations = models.ManyToManyField('Location', through='TourLocation')
 
 class TourLocation(models.Model):
     tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
     order = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ['tour', 'location']
+
 
    
