@@ -468,7 +468,7 @@ def api_tour_locations(request, tour_id):
     except Tour.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
-    tour_location_data = TourLocation.objects.filter(tour_id=tour_id)
+    tour_location_data = TourLocation.objects.filter(tour_id=tour_id, is_active=True)
 
     serializer = TourLocationSerializer(tour_location_data, many=True, context={'request': request})
 
@@ -477,7 +477,7 @@ def api_tour_locations(request, tour_id):
 @api_view(['GET'])
 @login_required
 def api_all_tour_locations(request):
-    tour_location_data = TourLocation.objects.all()
+    tour_location_data = TourLocation.objects.filter(is_active=True)
 
     serializer = TourLocationSerializer(tour_location_data, many=True, context={'request': request})
 
