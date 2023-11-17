@@ -474,6 +474,15 @@ def api_tour_locations(request, tour_id):
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@login_required
+def api_all_tour_locations(request):
+    tour_location_data = TourLocation.objects.all()
+
+    serializer = TourLocationSerializer(tour_location_data, many=True, context={'request': request})
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @login_required

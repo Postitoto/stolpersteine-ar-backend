@@ -56,6 +56,7 @@ urlpatterns = [
    path('api/edit-tour-locations/<int:tour_id>', views.api_edit_tour_locations, name="edit the locations in selected tour"),
    path('api/get-tours/', views.api_all_tours, name="get all tours"),
    path('api/get-tour-locations/<int:tour_id>', views.api_tour_locations, name="get the look up table values that match the tour id"),
+   path('api/get-tour-locations', views.api_all_tour_locations, "get all values in the look up table"),
    path('api/get-locations-in-tour/<int:tour_id>', views.api_get_locations_in_tour, name="gets locations saved in given tour"),
    path('api/get-tour/<int:tour_id>', views.api_get_tour, name="get a tour"),
    path('api/delete-tour/<int:tour_id>', views.api_delete_tour, name="delete tour with given id"),
