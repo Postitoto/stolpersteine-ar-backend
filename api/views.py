@@ -82,9 +82,7 @@ def all_locations(request):
     locations = Location.objects.all()
     serializer = LocationModelSerializer(
         locations, many=True, context={'request': request})
-    return Response(
-        serializer.data
-    )
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -417,16 +415,35 @@ def api_edit_tour_locations(request, tour_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
     
 
-    edited_tour_locations = []
-    for tour_location in request.data:
+     # Initialize a dictionary to hold collections for each index
+    tour_locations_collections = {}
+
+    # Iterate over the request data and organize it by index
+    for key, value in request.data.items():
+        # Extract index from the key
+        index = int(key.split('_')[-1])
+
+        # Extract the key without the index suffix
+        base_key = '_'.join(key.split('_')[:-1])
+
+        # If the index is not in the dictionary, create an empty collection
+        if index not in tour_locations_collections:
+            tour_locations_collections[index] = {}
+
+        # Append the key and value to the corresponding collection
+        tour_locations_collections[index][base_key] = value
+
+    for index, fields in tour_locations_collections.items():
         tour_location_data = {
-            'tour': tour_location['tour_id'],
-            'location': tour_location['location_id'],
-            'order': tour_location['order'],
-            'is_active': tour_location['is_active'],
+            'tour': fields['tour'],
+            'location': fields['location'],
+            'audioName': fields['audioName'],
+            'audio': fields['audio'],
+            'order': fields['order'],
+            'is_active': fields['is_active'],
         }
 
-        tour_location_id = tour_location.get('id', None)
+        tour_location_id = fields.get('id', None)
 
         try:
             tour_location_instance = TourLocation.objects.get(id=tour_location_id)
@@ -437,7 +454,6 @@ def api_edit_tour_locations(request, tour_id):
 
         if(serializer.is_valid()):
             serializer.save()
-            edited_tour_locations.append(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -458,7 +474,7 @@ def api_get_tour(request, tour_id):
         serializer = TourSerializer(tour)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['GET'])
 @login_required

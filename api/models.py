@@ -115,6 +115,8 @@ class Tour(models.Model):
 class TourLocation(models.Model):
     tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
+    audioName = models.CharField(null=True, blank=True, default=None, max_length=100, db_column="audio_name")
+    audio = models.FileField(upload_to='audios/%Y%m%d/', null=True, blank=False, storage=VideoMediaCloudinaryStorage())
     order = models.PositiveIntegerField()
     is_active = models.BooleanField(default=False)
 
