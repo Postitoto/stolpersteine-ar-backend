@@ -118,13 +118,6 @@ DATABASES = {
         #'ENGINE': 'django.db.backends.sqlite3',
         #'NAME': BASE_DIR / 'db.sqlite3',
 
-        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        #'NAME': 'stolpersteine_ar_database',
-        #'USER': 'stolpersteine_ar_database_user',
-        #'PASSWORD': 'XKbt05masQL5GQcsOqlrty41GGFmvyTi',
-        #'HOST': 'dpg-cjaeh0ee546c738s87eg-a.frankfurt-postgres.render.com',
-        #'PORT': '5432',
-
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'stolpersteine',
         'USER': 'thotor',
@@ -213,6 +206,11 @@ CORS_ORIGIN_WHITELIST = (
   'http://localhost:4200',
   'https://stolperstein-manager.web.app',
 )
+
+CORS_ALLOWED_ORIGINS = [
+  'http://localhost:4200',
+  'https://stolperstein-manager.web.app',
+]
 
 
 CLOUDINARY_STORAGE = {
