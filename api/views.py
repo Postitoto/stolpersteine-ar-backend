@@ -437,14 +437,18 @@ def api_edit_tour_locations(request, tour_id):
         tour_location_data = {
             'tour': fields['tour'],
             'location': fields['location'],
-            'audioName': fields['audioName'],
-            'audio': fields['audio'],
             'order': fields['order'],
             'is_active': fields['is_active'],
         }
 
+         # Check if 'audio' field exists and is not empty
+        if 'audio' in fields and fields['audio']:
+            tour_location_data['audioName'] = fields['audioName']
+            tour_location_data['audio'] = fields['audio']
+
         tour_location_id = fields.get('id', None)
 
+        # If the TourLocation is already saved to the database we'll update it instead of creating a new object
         try:
             tour_location_instance = TourLocation.objects.get(id=tour_location_id)
         except TourLocation.DoesNotExist:

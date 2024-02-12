@@ -2,7 +2,7 @@
 
 ## Installation Instructions
 
-1. Install Python3 
+1. Install Python3. Version 3.8.10 works for sure.
 
 2. [Install Virtual Environment](https://code.visualstudio.com/docs/python/tutorial-django)
 
@@ -45,40 +45,40 @@ export API_KEY_CLOUDINARY=<api-key>
 export API_SECRET_CLOUDINARY=<api-secret>
 ```
 
-Depending on your production environment you may have a GUI to set environment variables. This Django project is configured to run on [Heroku](https://www.heroku.com).
+Depending on your production environment you may have a GUI to set environment variables. This Django project is configured to run on [Render](https://render.com/).
 
-5. Run Development Server 
+5. Database
+
+The database was also hosted on Render. Sadly, free databases are deleted after 3 months there so the database I worked with is not online anymore.
+
+I created an SQL dump file which is located in this folder under 'stolpersteine_dump.sql'
+
+If you choose to continue using Render as a host for the database you can restore this file by following these steps.
+
+- Go to https://dashboard.render.com/
+
+- Click on the 'New +' button, select PostgreSQL and fill out the field as you desire. Click on 'Create Database', this will take some time.
+
+- If you're not working on Windows you can skip this step: Install wsl on your windows machine and select a Linux distro: https://learn.microsoft.com/en-us/windows/wsl/install
+
+- Install the postgres-client with 'sudo apt-get install postgresql-client'
+
+- Now the following command should restore the dump file into your database when replacing the placeholders with your information:
+
+```
+pg_restore -h <host> -p <port> -U <username> -d <database_name> -W -F c -c <dump_file>
+```
+
+- Similarly, you can crate a dump using this command:
+
+```
+pg_dump -h <host> -p <port> -U <username> -d <database_name> -f <output_file.sql>
+```
+
+6. Run Development Server 
 ```
 python3 manage.py runserver
 ```
 In case you are using an external hosting provider you don't need this step.
 
-## Running the Django server on Heroku (taken from this [Tutorial](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Deployment))
 
-0. Install the Heroku CLI
-
-Follow the [installation guide](https://devcenter.heroku.com/articles/getting-started-with-python#set-up) suitable for your environment.
-
-In case you are using Ubuntu (or a similar distribution) within the Windows Subsystem for Linux (WSL2) you can install the CLI via Shellscript which does not require Snap.
-```bash
-curl https://cli-assets.heroku.com/install.sh | sh
-```
-
-1. Create a git remote for heroku
-
-In case this is the first deployment run the following command.
-```
-heroku create
-```
-
-2. Push the app to heroku
-
-The following command pushes your main branch to the heroku remote main branch and starts the app. It also executes the collectstatic command. 
-```
-git push heroku main
-``` 
-In case this is the first deployment (or you have made changes to your models) make sure to perform the migrate command 
-```
-heroku run python manage.py migrate
-```
-and to create a superuser. Follow the Tutorial linked above for more information.
